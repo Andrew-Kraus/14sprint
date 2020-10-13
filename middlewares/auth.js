@@ -1,3 +1,4 @@
+const { JWT_SECRET = 'dev-key' } = process.env;
 const jwt = require('jsonwebtoken');
 
 const handleAuthError = (res) => {
@@ -5,13 +6,13 @@ const handleAuthError = (res) => {
 };
 // eslint-disable-next-line
 const extractBearerToken = (header) => {
-  return header.replace('Bearer', '');
+  return header.replace('Bearer ', '');
 };
 // eslint-disable-next-line
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
 
-  if (!authorization || !authorization.startsWith('Bearer')) {
+  if (!authorization || !authorization.startsWith('Bearer ')) {
     return handleAuthError(res);
   }
 
@@ -19,7 +20,7 @@ module.exports = (req, res, next) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, 'super-strong-secret');
+    payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
     return handleAuthError(res);
   }

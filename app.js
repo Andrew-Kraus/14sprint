@@ -32,4 +32,4 @@ app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`App listening on port ${PORT}`);
 });
-// 1 проверка //
+// 2 proverka //

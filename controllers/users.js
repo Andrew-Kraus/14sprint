@@ -15,13 +15,15 @@ module.exports.getUserId = (req, res) => {
     .orFail(() => new Error('notFound'))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.message === 'notFound') {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные' });
+      } else if (err.message === 'notFound') {
         res.status(404).send({ message: 'Такого пользователя не существует' });
       }
       res.status(500).send({ message: 'Ошибка' });
     });
 };
-
+// eslint-disable-next-line
 module.exports.createUser = (req, res) => {
   const {
     name,
@@ -30,6 +32,10 @@ module.exports.createUser = (req, res) => {
     email,
     password,
   } = req.body;
+  const passValid = password.replace(/\s/g, '');
+  if (passValid.length === 0) {
+    return res.status(400).send({ message: 'Переданы некорректные данные' });
+  }
   User.init().then(() => {
     bcrypt.hash(password, 10)
       .then((hash) => User.create({
@@ -44,6 +50,8 @@ module.exports.createUser = (req, res) => {
       .catch((err) => {
         if (err.name === 'ValidationError') {
           res.status(400).send({ message: 'Переданы некорректные данные' });
+        } else if (err.name === 'MongoError') {
+          res.status(409).send({ message: 'Этот Email уже занят' });
         }
         res.status(500).send({ message: 'Ошибка' });
       });
@@ -61,7 +69,7 @@ module.exports.login = (req, res) => {
         httpOnly: true,
         sameSite: true,
       });
-      res.send(token);
+      res.send({ token });
     })
     .catch((err) => {
       res.status(401).send({ message: err.message });
