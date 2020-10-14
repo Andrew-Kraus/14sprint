@@ -32,8 +32,7 @@ module.exports.createUser = (req, res) => {
     email,
     password,
   } = req.body;
-  const passValid = password.replace(/\s/g, '');
-  if (passValid.length === 0) {
+  if (!password) {
     return res.status(400).send({ message: 'Переданы некорректные данные' });
   }
   User.init().then(() => {

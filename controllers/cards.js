@@ -19,27 +19,39 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.id)
-    .orFail(new Error('NotValidId'))
-    // eslint-disable-next-line
+  Card.findById(req.params.id)
+    .orFail(new Error('notFound'))
+  // eslint-disable-next-line
     .then((card) => {
-      if (req.user._id !== card.owner) {
-        return Promise.reject(new Error('У вас нет прав'));
-      }
-      Card.deleteOne({ _id: req.params.cardId })
       // eslint-disable-next-line
-        .then((card) => {
-          res.send({ data: card });
-        });
+      if(req.user._id != card.owner){
+        return Promise.reject(new Error('notEnoughRights'));
+      // eslint-disable-next-line
+      } else {
+        Card.deleteOne({ _id: req.params.id })
+        // eslint-disable-next-line
+          .then((card) => {
+            res.send({ data: card });
+          })
+          .catch((err) => {
+            res.status(500).send({ message: `${err}` });
+          });
+      }
     })
     .catch((err) => {
-      if (err.message === 'NotValidId') {
-        res.status(404).send({ message: 'Переданы некорректные данные' });
-      } else if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Нет пользователя с таким id' });
-      } else if (err.message === 'Denied') {
-        res.status(403).send({ message: 'у вас нет прав' });
+      if (err.message === 'notEnoughRights') {
+        // eslint-disable-next-line
+        res.status(403).send({ message: 'У вас недостаточно прав' });
+        return;
+        // eslint-disable-next-line
       }
-      res.status(500).send({ message: 'Ошибка' });
+      // eslint-disable-next-line
+      else if (err.message === 'notFound') {
+        // eslint-disable-next-line
+        res.status(404).send({ message: 'Карточка не найдена' });
+        return;
+      }
+      // eslint-disable-next-line
+      res.status(500).send({ message: 'Что-то пошло не так' });
     });
 };
