@@ -44,6 +44,8 @@ module.exports.deleteCard = (req, res) => {
         res.status(403).send({ message: 'У вас недостаточно прав' });
         return;
         // eslint-disable-next-line
+      } else if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       // eslint-disable-next-line
       else if (err.message === 'notFound') {
